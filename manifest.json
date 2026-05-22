@@ -1,0 +1,114 @@
+{
+  "name": "Mana Hub - Delivery & Services Nirmal",
+  "short_name": "Mana Hub",
+  "description": "Local delivery, grocery, food, tiffin, events & market in Nirmal District, Telangana.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": [
+    "standalone",
+    "minimal-ui"
+  ],
+  "orientation": "portrait-primary",
+  "theme_color": "#2D5016",
+  "background_color": "#2D5016",
+  "lang": "en-IN",
+  "categories": [
+    "shopping",
+    "food",
+    "lifestyle"
+  ],
+  "prefer_related_applications": false,
+  "shortcuts": [
+    {
+      "name": "Store",
+      "short_name": "Store",
+      "url": "./index.html#store",
+      "description": "Browse & order products"
+    },
+    {
+      "name": "Deliveries",
+      "short_name": "Delivery",
+      "url": "./index.html#deliveries",
+      "description": "Book delivery services"
+    },
+    {
+      "name": "Events",
+      "short_name": "Events",
+      "url": "./index.html#events",
+      "description": "Plan mini events"
+    },
+    {
+      "name": "Market",
+      "short_name": "Market",
+      "url": "./index.html#market",
+      "description": "Local market"
+    }
+  ],
+  "icons": [
+    {
+      "src": "https://images.unsplash.com/photo-1542838132-92c53300491e?w=512&h=512&fit=crop&crop=center",
+      "sizes": "72x72",
+      "type": "image/jpeg",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "https://images.unsplash.com/photo-1542838132-92c53300491e?w=512&h=512&fit=crop&crop=center",
+      "sizes": "96x96",
+      "type": "image/jpeg",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "https://images.unsplash.com/photo-1542838132-92c53300491e?w=512&h=512&fit=crop&crop=center",
+      "sizes": "128x128",
+      "type": "image/jpeg",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "https://images.unsplash.com/photo-1542838132-92c53300491e?w=512&h=512&fit=crop&crop=center",
+      "sizes": "144x144",
+      "type": "image/jpeg",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "https://images.unsplash.com/photo-1542838132-92c53300491e?w=512&h=512&fit=crop&crop=center",
+      "sizes": "152x152",
+      "type": "image/jpeg",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "https://images.unsplash.com/photo-1542838132-92c53300491e?w=512&h=512&fit=crop&crop=center",
+      "sizes": "192x192",
+      "type": "image/jpeg",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "https://images.unsplash.com/photo-1542838132-92c53300491e?w=512&h=512&fit=crop&crop=center",
+      "sizes": "384x384",
+      "type": "image/jpeg",
+      "purpose": "maskable any"
+    },
+    {
+      "src": "https://images.unsplash.com/photo-1542838132-92c53300491e?w=512&h=512&fit=crop&crop=center",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "maskable any"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "https://images.unsplash.com/photo-1542838132-92c53300491e?w=390&h=844&fit=crop",
+      "sizes": "390x844",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "Mana Hub \u2014 Home"
+    },
+    {
+      "src": "https://images.unsplash.com/photo-1608228088998-57828365d486?w=390&h=844&fit=crop",
+      "sizes": "390x844",
+      "type": "image/jpeg",
+      "form_factor": "narrow",
+      "label": "Mana Hub \u2014 Deliveries"
+    }
+  ]
+}

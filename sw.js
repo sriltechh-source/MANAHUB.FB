@@ -1,7 +1,0 @@
-const CACHE='sricart-v7';
-const PRECACHE=['./index.html','./manifest.json'];
-self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE).then(c=>c.addAll(PRECACHE).catch(()=>{})));});
-self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));});
-self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;e.respondWith(fetch(e.request).then(res=>{if(res&&res.status===200){const c=res.clone();caches.open(CACHE).then(ca=>{try{ca.put(e.request,c);}catch(e){}});}return res;}).catch(()=>caches.match(e.request).then(c=>c||(e.request.mode==='navigate'?caches.match('./index.html'):new Response('Offline',{status:503})))));});
-self.addEventListener('push',e=>{let d={title:'SRICART',body:'New update!'};try{d=e.data?e.data.json():d;}catch(e){}e.waitUntil(self.registration.showNotification(d.title||'SRICART',{body:d.body,icon:'/icons/icon-192.png',tag:'sricart-push',renotify:true,data:{url:'/'}}));});
-self.addEventListener('notificationclick',e=>{e.notification.close();const url=e.notification.data?.url||'./';e.waitUntil(clients.matchAll({type:'window',includeUncontrolled:true}).then(w=>{for(const c of w){if(c.url.includes(self.location.origin)&&'focus'in c){c.navigate(url);return c.focus();}}if(clients.openWindow)return clients.openWindow(url);}));});

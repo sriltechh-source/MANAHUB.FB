@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+<title>SRICART — Delivery Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --brand:#c0392b;--brand2:#e74c3c;--brand3:#e74c3c;--accent:#c0392b;
+  --bg:#f0f2f5;--bg2:#e8eaed;--bg3:#ffffff;
+  --glass:rgba(255,255,255,0.9);--glass2:#fff;--glass3:#fff;
+  --glow:rgba(192,57,43,0.12);--glow2:rgba(192,57,43,0.22);
+  --border:#e2e5ea;--border2:#d5d9e0;--border3:#c0392b;
+  --text:#1a1a1a;--text2:#555;--text3:#888;
+  --green:#27ae60;--red:#c0392b;--orange:#e67e22;--yellow:#f39c12;--blue:#2980b9;--purple:#8e44ad;
+
+  /* ── Card colours ── */
+  --card-grocery-bg:#fff5f5;
+  --card-grocery-border:#f5c6c2;
+  --card-grocery-accent:#c0392b;
+  --card-food-bg:#fff8f0;
+  --card-food-border:#ffd7aa;
+  --card-food-accent:#e67e22;
+  --card-booking-bg:#ffffff;
+  --card-booking-border:#e2e5ea;
+  --card-booking-accent:#2980b9;
+}
+body{
+  font-family:'Plus Jakarta Sans',system-ui,sans-serif;
+  background:var(--bg);color:#1a1a1a;
+  min-height:100vh;max-width:480px;margin:0 auto;
+  overflow-x:hidden;
+}
+body::before{display:none}
+::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:#d5d9e0;border-radius:3px}
+input,button{font-family:inherit}
+
+/* ════ LOGIN ════ */
+.login-screen{
+  display:flex;align-items:center;justify-content:center;
+  min-height:100vh;padding:24px;
+  background:linear-gradient(135deg,#c0392b 0%,#e74c3c 100%);
+}
+.login-card{
+  background:#fff;
+  border-radius:28px;padding:40px 28px;width:100%;
+  box-shadow:0 20px 60px rgba(0,0,0,0.18);
+  position:relative;overflow:hidden;
+}
+.login-card::before{display:none}
+.login-logo{text-align:center;margin-bottom:14px}
+.login-logo-icon{
+  width:64px;height:64px;
+  background:linear-gradient(135deg,#c0392b,#e74c3c);
+  border-radius:18px;display:inline-flex;align-items:center;justify-content:center;
+  font-size:30px;box-shadow:0 8px 28px rgba(192,57,43,0.3);
+}
+.login-title{
+  text-align:center;font-size:22px;font-weight:900;
+  color:#c0392b;margin:10px 0 4px;
+}
+.login-sub{text-align:center;font-size:13px;color:#888;margin-bottom:26px}
+.form-input{
+  width:100%;background:#f7f8fa;border:1.5px solid #e2e5ea;
+  border-radius:12px;padding:13px 16px;font-size:14px;color:#1a1a1a;
+  outline:none;margin-bottom:12px;transition:.2s;
+}
+.form-input:focus{border-color:#c0392b;background:#fff;box-shadow:0 0 0 3px rgba(192,57,43,0.1)}
+.form-input::placeholder{color:#bbb}
+.btn-login{
+  width:100%;padding:14px;border:none;border-radius:12px;
+  font-size:14px;font-weight:800;cursor:pointer;
+  background:linear-gradient(135deg,#c0392b,#e74c3c);color:#fff;
+  box-shadow:0 4px 20px rgba(192,57,43,0.3);transition:.2s;letter-spacing:.3px;
+}
+.btn-login:hover{transform:translateY(-1px);box-shadow:0 6px 28px rgba(192,57,43,0.4)}
+.btn-login:active{transform:scale(.98)}
+.error-msg{color:#c0392b;font-size:12px;text-align:center;margin-top:8px;min-height:18px}
+
+/* ════ DASHBOARD ════ */
+.dashboard{display:none;position:relative;z-index:1;padding-bottom:72px}
+
+/* ════ HEADER ════ */
+.header{
+  background:#fff;
+  border-bottom:2px solid #f0f2f5;
+  padding:0 16px;height:60px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;
+  box-shadow:0 2px 12px rgba(0,0,0,0.06);
+}
+.header-left{display:flex;align-items:center;gap:10px}
+.header-logo{
+  width:38px;height:38px;
+  background:linear-gradient(135deg,#c0392b,#e74c3c);
+  border-radius:11px;display:flex;align-items:center;justify-content:center;
+  font-size:20px;box-shadow:0 2px 12px rgba(192,57,43,0.25);
+}
+.header-title{font-size:15px;font-weight:800;color:#1a1a1a}
+.header-sub{font-size:11px;color:#888}
+.logout-btn{
+  background:rgba(192,57,43,0.08);border:1.5px solid rgba(192,57,43,0.25);
+  color:#c0392b;padding:7px 13px;border-radius:9px;
+  cursor:pointer;font-size:12px;font-weight:700;transition:.2s;
+}
+.logout-btn:hover{background:rgba(192,57,43,0.15)}
+
+/* ════ ONLINE BAR ════ */
+.online-bar{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 16px;
+  background:#fff;border-bottom:1.5px solid #f0f2f5;
+}
+.online-label{flex:1;font-size:13px;font-weight:700;color:#1a1a1a}
+.toggle-wrap{position:relative;width:50px;height:26px;cursor:pointer}
+.toggle-wrap input{opacity:0;width:0;height:0}
+.toggle-slider{
+  position:absolute;inset:0;
+  background:#e2e5ea;border:1.5px solid #d5d9e0;
+  border-radius:26px;transition:.3s;
+}
+.toggle-slider:before{
+  content:'';position:absolute;height:20px;width:20px;
+  left:3px;bottom:2px;background:#aaa;
+  border-radius:50%;transition:.3s;
+}
+input:checked+.toggle-slider{background:rgba(39,174,96,0.2);border-color:#27ae60}
+input:checked+.toggle-slider:before{transform:translateX(22px);background:#27ae60;box-shadow:0 0 8px rgba(39,174,96,0.4)}
+
+/* ════ GPS BAR ════ */
+.gps-bar{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:10px 16px;background:#f7f8fa;border-bottom:1.5px solid #e8eaed;
+}
+.gps-info{display:flex;align-items:center;gap:8px}
+.gps-dot{width:9px;height:9px;border-radius:50%;flex-shrink:0}
+.gps-dot.active{background:#27ae60;box-shadow:0 0 8px rgba(39,174,96,0.4);animation:gpsPulse 2s infinite}
+.gps-dot.inactive{background:#ccc}
+@keyframes gpsPulse{0%,100%{opacity:1}50%{opacity:.4}}
+.gps-text{font-size:12px;font-weight:700;color:#555}
+.gps-coords{font-size:10px;color:#aaa;font-family:monospace}
+.gps-update-btn{
+  background:#e3f2fd;border:1.5px solid #90caf9;
+  color:#1565c0;padding:7px 13px;border-radius:9px;
+  font-size:11px;font-weight:800;cursor:pointer;transition:.2s;
+}
+.gps-update-btn:hover{background:#bbdefb}
+
+/* ════ STATS ════ */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;padding:12px 14px}
+.stat-card{
+  background:#fff;
+  border:1.5px solid #e2e5ea;border-radius:14px;
+  padding:14px 10px;text-align:center;
+  box-shadow:0 2px 8px rgba(0,0,0,0.04);
+}
+.stat-num{font-size:26px;font-weight:900;line-height:1;color:#1a1a1a}
+.stat-label{font-size:10px;color:#888;margin-top:5px;font-weight:700;letter-spacing:.3px}
+
+/* ════ TAB BAR ════ */
+.tab-bar{
+  display:flex;background:#fff;
+  border-bottom:1.5px solid #f0f2f5;
+}
+.tab{
+  flex:1;padding:13px 6px;text-align:center;
+  font-size:11px;font-weight:700;cursor:pointer;
+  color:#aaa;border-bottom:2.5px solid transparent;transition:.2s;
+}
+.tab.active{color:#c0392b;border-bottom-color:#c0392b}
+
+/* ════ SECTION TITLE ════ */
+.section-title{
+  font-size:14px;font-weight:800;color:#1a1a1a;
+  padding:14px 14px 8px;
+  display:flex;align-items:center;justify-content:space-between;
+}
+.section-count{
+  font-size:12px;
+  background:rgba(192,57,43,0.08);color:#c0392b;
+  border:1.5px solid rgba(192,57,43,0.2);
+  padding:2px 9px;border-radius:999px;font-weight:800;
+}
+
+/* ════ ORDER CARDS ════ */
+/* Base */
+.order-card{
+  background:#fff;
+  border:1.5px solid #e2e5ea;
+  border-left-width:5px;
+  border-left-color:#c0392b;
+  border-radius:16px;
+  margin:0 12px 12px;overflow:hidden;transition:.2s;
+  box-shadow:0 2px 10px rgba(0,0,0,0.05);
+}
+.order-card:active{transform:scale(.99)}
+
+/* ── Grocery/Store → RED ── */
+.order-card.type-order{
+  background:var(--card-grocery-bg);
+  border-color:var(--card-grocery-border);
+  border-left-color:var(--card-grocery-accent);
+}
+/* ── Food → ORANGE ── */
+.order-card.type-food{
+  background:var(--card-food-bg);
+  border-color:var(--card-food-border);
+  border-left-color:var(--card-food-accent);
+}
+/* ── Booking → WHITE/BLUE ── */
+.order-card.type-booking{
+  background:var(--card-booking-bg);
+  border-color:var(--card-booking-border);
+  border-left-color:var(--card-booking-accent);
+}
+.order-card-top{
+  padding:13px 14px;border-bottom:1.5px solid #f0f2f5;
+  display:flex;align-items:flex-start;justify-content:space-between;gap:8px;
+}
+.order-name{font-size:15px;font-weight:800;color:#1a1a1a}
+.order-meta{font-size:11px;color:#888;margin-top:3px}
+.badge{display:inline-flex;align-items:center;gap:4px;padding:5px 11px;border-radius:999px;font-size:10px;font-weight:800}
+.badge-confirmed{background:#e3f2fd;color:#1565c0;border:1.5px solid #90caf9}
+.badge-packed{background:#f3e5f5;color:#7b1fa2;border:1.5px solid #ce93d8}
+.badge-out_for_delivery{background:#fff8e1;color:#e67e22;border:1.5px solid #ffe082}
+.badge-delivered{background:#e8f5e9;color:#2e7d32;border:1.5px solid #a5d6a7}
+
+.order-body{padding:12px 14px}
+.order-items{font-size:12px;color:#555;line-height:1.7;background:#f7f8fa;border:1.5px solid #e8eaed;border-radius:10px;padding:9px 11px;margin-bottom:10px}
+.order-address{display:flex;gap:6px;font-size:12px;color:#555;margin-bottom:10px;line-height:1.5}
+.order-instructions{font-size:11px;color:#666;background:#fffde7;border:1.5px solid #ffe082;border-radius:8px;padding:8px 11px;margin-bottom:10px}
+.order-actions{display:flex;gap:6px;flex-wrap:wrap}
+.act-btn{
+  flex:1;min-width:80px;padding:12px 8px;
+  border:none;border-radius:12px;
+  font-size:12px;font-weight:800;cursor:pointer;
+  transition:.2s;text-align:center;text-decoration:none;
+  display:inline-flex;align-items:center;justify-content:center;
+}
+.act-btn:active{transform:scale(.97)}
+.act-start{background:#fff8f0;border:1.5px solid #ffd7aa;color:#e67e22}
+.act-start:hover{background:#ffedd5}
+.act-deliver{background:#e8f5e9;border:1.5px solid #a5d6a7;color:#2e7d32}
+.act-deliver:hover{background:#c8e6c9}
+.act-call{background:#f7f8fa;border:1.5px solid #e2e5ea;color:#555}
+.act-call:hover{background:#f0f2f5}
+.act-map{background:#e3f2fd;border:1.5px solid #90caf9;color:#1565c0}
+.act-map:hover{background:#bbdefb}
+
+/* ════ NEW ORDER ALERT ════ */
+.new-order-alert{
+  display:none;margin:10px 12px;
+  background:#e8f5e9;
+  border:1.5px solid #a5d6a7;
+  border-radius:14px;padding:12px 14px;
+  align-items:center;gap:10px;
+  animation:alertPulse 2s infinite;
+}
+.new-order-alert.show{display:flex}
+@keyframes alertPulse{0%,100%{box-shadow:0 0 0 0 rgba(39,174,96,0.35)}50%{box-shadow:0 0 0 8px rgba(39,174,96,0)}}
+
+/* ════ EMPTY STATE ════ */
+.empty-state{text-align:center;padding:50px 20px}
+.empty-icon{font-size:46px;margin-bottom:12px}
+.empty-title{font-size:14px;font-weight:800;color:#555;margin-bottom:6px}
+.empty-sub{font-size:12px;color:#aaa}
+
+/* ════ BOTTOM NAV ════ */
+.bottom-nav{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%);
+  width:100%;max-width:480px;
+  background:#fff;
+  border-top:1.5px solid #e2e5ea;
+  display:flex;height:62px;z-index:100;
+  box-shadow:0 -4px 20px rgba(0,0,0,0.07);
+}
+.nav-item{
+  flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  cursor:pointer;color:#bbb;font-size:10px;font-weight:700;transition:.2s;
+}
+.nav-item.active{color:#c0392b}
+.nav-item svg{width:20px;height:20px}
+
+/* ════ HISTORY CARD ════ */
+.history-card{
+  background:#f7f8fa;border:1.5px solid #e8eaed;
+  border-radius:12px;margin:0 12px 8px;padding:12px 14px;
+  display:flex;align-items:center;gap:12px;
+}
+.history-check{
+  width:38px;height:38px;border-radius:11px;
+  background:#e8f5e9;border:1.5px solid #a5d6a7;
+  display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;
+}
+
+/* ════ TOAST ════ */
+.toast{
+  position:fixed;top:70px;left:50%;
+  transform:translateX(-50%) translateY(-10px);
+  background:#fff;
+  border:1.5px solid #e2e5ea;border-radius:12px;
+  padding:12px 20px;font-size:13px;font-weight:700;color:#1a1a1a;
+  z-index:500;opacity:0;transition:.3s;
+  pointer-events:none;white-space:nowrap;max-width:90vw;text-align:center;
+  box-shadow:0 8px 28px rgba(0,0,0,0.12);
+}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.success{border-color:#a5d6a7;color:#2e7d32;background:#e8f5e9}
+.toast.error{border-color:#ef9a9a;color:#c62828;background:#ffebee}
+
+/* ════ FLOAT CALL ════ */
+.float-call{
+  position:fixed;bottom:74px;right:16px;
+  width:52px;height:52px;
+  background:linear-gradient(135deg,#c0392b,#e74c3c);
+  border-radius:16px;display:flex;align-items:center;justify-content:center;
+  font-size:22px;
+  box-shadow:0 4px 20px rgba(192,57,43,0.35);z-index:90;text-decoration:none;transition:.2s;
+}
+.float-call:active{transform:scale(.95)}
+</style>
+</head>
+<body>
+
+<!-- ════════════════════ LOGIN ════════════════════ -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo"><div class="login-logo-icon">🛵</div></div>
+    <div class="login-title">Delivery Portal</div>
+    <div class="login-sub">SRICART — Rider Login</div>
+    <input class="form-input" type="email" id="dbEmail" placeholder="Your email address" autocomplete="email"/>
+    <input class="form-input" type="password" id="dbPass" placeholder="Password" autocomplete="current-password"
+      onkeydown="if(event.key==='Enter')dbLogin()"/>
+    <button class="btn-login" onclick="dbLogin()">Sign In →</button>
+    <div class="error-msg" id="loginError"></div>
+  </div>
+</div>
+
+<!-- ════════════════════ DASHBOARD ════════════════════ -->
+<div class="dashboard" id="dashboard">
+
+  <!-- Header -->
+  <div class="header">
+    <div class="header-left">
+      <div class="header-logo">🛵</div>
+      <div>
+        <div class="header-title">Delivery Dashboard</div>
+        <div class="header-sub" id="dbEmailDisplay">—</div>
+      </div>
+    </div>
+    <button class="logout-btn" onclick="dbLogout()">Logout</button>
+  </div>
+
+  <!-- Online Toggle -->
+  <div class="online-bar">
+    <span class="online-label" id="onlineLabel">🔴 You are Offline</span>
+    <label class="toggle-wrap">
+      <input type="checkbox" id="onlineToggle" onchange="toggleOnline()"/>
+      <span class="toggle-slider"></span>
+    </label>
+  </div>
+
+  <!-- GPS Bar -->
+  <div class="gps-bar">
+    <div class="gps-info">
+      <div class="gps-dot inactive" id="gpsDot"></div>
+      <div>
+        <div class="gps-text" id="gpsStatus">GPS not active</div>
+        <div class="gps-coords" id="gpsCoords">—</div>
+      </div>
+    </div>
+    <button class="gps-update-btn" onclick="startGPS()">📍 Update GPS</button>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-num" style="color:#e67e22" id="sAssigned">0</div>
+      <div class="stat-label">Assigned</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" style="color:var(--purple)" id="sInProgress">0</div>
+      <div class="stat-label">In Progress</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" style="color:#27ae60" id="sDelivered">0</div>
+      <div class="stat-label">Delivered Today</div>
+    </div>
+  </div>
+
+  <!-- Tab Bar -->
+  <div class="tab-bar">
+    <div class="tab active" id="dtab-assigned"   onclick="switchTab('assigned')">📦 Assigned</div>
+    <div class="tab"        id="dtab-inprogress" onclick="switchTab('inprogress')">🚀 In Progress</div>
+    <div class="tab"        id="dtab-history"    onclick="switchTab('history')">✅ History</div>
+  </div>
+
+  <!-- New Order Alert -->
+  <div class="new-order-alert" id="newOrderAlert">
+    <span style="font-size:22px">🔔</span>
+    <div style="flex:1">
+      <div style="font-size:13px;font-weight:800;color:#c0392b">New Order Assigned!</div>
+      <div style="font-size:11px;color:#555" id="newOrderAlertText">You have a new delivery</div>
+    </div>
+    <button onclick="document.getElementById('newOrderAlert').classList.remove('show');switchTab('assigned')"
+      style="background:#e74c3c;border:none;border-radius:8px;padding:7px 13px;font-size:11px;font-weight:800;color:#fff;cursor:pointer">
+      View →
+    </button>
+  </div>
+
+  <!-- Orders Container -->
+  <div id="ordersContainer" style="padding-top:6px">
+    <div class="empty-state"><div class="empty-icon">📦</div><div class="empty-title">Loading orders...</div></div>
+  </div>
+
+  <!-- Bottom Nav -->
+  <div class="bottom-nav">
+    <div class="nav-item active" id="nav-orders" onclick="switchTab('assigned')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 7H4a2 2 0 00-2 2v10a2 2 0 002 2h16a2 2 0 002-2V9a2 2 0 00-2-2z"/><path d="M16 3H8l-2 4h12l-2-4z"/></svg>
+      Orders
+    </div>
+    <div class="nav-item" id="nav-inprogress" onclick="switchTab('inprogress')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      In Progress
+    </div>
+    <div class="nav-item" id="nav-history" onclick="switchTab('history')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>
+      History
+    </div>
+  </div>
+
+</div>
+
+<!-- Float Call -->
+<a class="float-call" href="tel:+917799086877" title="Call SRICART Office">📞</a>
+
+<!-- Toast -->
+<div class="toast" id="dbToast"></div>
+
+<script>
+/* ════════════════════════════════
+   FIREBASE INIT
+════════════════════════════════ */
+const firebaseConfig = {
+  apiKey:"AIzaSyAp-g1syTD9Q8ZRgjdxQDbFF6D9l9zHISY",
+  authDomain:"fir-v1-a695a.firebaseapp.com",
+  projectId:"fir-v1-a695a",
+  storageBucket:"fir-v1-a695a.firebasestorage.app",
+  messagingSenderId:"50283321145",
+  appId:"1:50283321145:web:94c4c204309c0914ff7ae8"
+};
+
+let auth, db;
+try {
+  firebase.initializeApp(firebaseConfig);
+  auth = firebase.auth();
+  db   = firebase.firestore();
+} catch(e) {
+  console.error('[Firebase] Init failed:', e);
+  document.getElementById('loginError').textContent = 'Service error. Please reload.';
+}
+
+/* ════════════════════════════════
+   DELIVERY PARTNER WHITELIST
+   DELIVERY PARTNER WHITELIST ← ADD RIDER EMAILS HERE
+   These must match the exact Firebase login email of each rider
+════════════════════════════════ */
+const DELIVERY_EMAILS = [
+  // ⚠️ REPLACE THESE with your actual rider Gmail addresses
+  'rider1@sricart.in',
+  'rider2@sricart.in',
+  'delivery@sricart.in'
+  // Add more rider emails here — one per line
+];
+
+let DB_USER = null;
+let GPS     = { lat:null, lng:null };
+let currentTab = 'assigned';
+let _allOrders = [], _unsubOrders = null, _lastOrderCount = null;
+let _audioCtx  = null;
+
+/* ════════════════════════════════
+   DELIVERY FCM — Background Push (even when tab is closed)
+   Set your VAPID key from Firebase Console → Project Settings → Cloud Messaging
+════════════════════════════════ */
+const DELIVERY_FCM_VAPID_KEY = "YOUR_VAPID_KEY_HERE"; // ⚠️ Same VAPID key as sw.js
+
+let _deliveryFCM = null;
+try { _deliveryFCM = firebase.messaging(); } catch(e) { console.info("[DeliveryFCM] Not supported:", e.message); }
+
+async function _initDeliveryFCM(user) {
+  if (!_deliveryFCM) return;
+  if (location.protocol !== "https:") { console.info("[DeliveryFCM] Requires HTTPS"); return; }
+  if (!DELIVERY_FCM_VAPID_KEY || DELIVERY_FCM_VAPID_KEY === "YOUR_VAPID_KEY_HERE") {
+    console.info("[DeliveryFCM] Set DELIVERY_FCM_VAPID_KEY to enable background push");
+    return;
+  }
+  try {
+    const swReg = await navigator.serviceWorker.register('./sw.js');
+    const perm = await Notification.requestPermission();
+    if (perm !== "granted") { console.info("[DeliveryFCM] Permission denied"); return; }
+    const token = await _deliveryFCM.getToken({ vapidKey: DELIVERY_FCM_VAPID_KEY, serviceWorkerRegistration: swReg });
+    if (!token) return;
+    // Save delivery token with role="delivery"
+    const db2 = firebase.firestore();
+    await db2.collection("fcm_tokens").doc(token).set({
+      token, userId: user.uid, userEmail: user.email,
+      riderName: user.displayName || user.email,
+      role: "delivery", platform: "web-delivery", active: true,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    }, { merge: true });
+    await db2.collection("delivery_boys").doc(user.uid).set({
+      fcmToken: token, notificationsEnabled: true,
+      fcmTokenUpdatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    }, { merge: true });
+    console.log("[DeliveryFCM] Delivery FCM token saved ✅");
+
+    // Handle foreground messages with loud alarm sound
+    _deliveryFCM.onMessage((payload) => {
+      const title = payload.notification?.title || payload.data?.title || "SRICART Delivery";
+      const body  = payload.notification?.body  || payload.data?.body  || "New assignment!";
+      playLoudDeliveryAlarm();
+      showToast("🛵 " + title, "success");
+      _showDeliveryBanner(title, body);
+    });
+
+    // Also listen to delivery_notifications Firestore collection (real-time fallback)
+    _listenDeliveryNotifications(user);
+  } catch(e) {
+    console.warn("[DeliveryFCM] Init error:", e.message);
+  }
+}
+
+/* Loud alarm for delivery boy — new assignment notification */
+function playLoudDeliveryAlarm() {
+  try {
+    if (!_audioCtx) _audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    const pattern = [880, 1100, 880, 1100, 880, 1320, 880];
+    pattern.forEach((freq, i) => {
+      setTimeout(() => {
+        const o = _audioCtx.createOscillator(), g = _audioCtx.createGain();
+        o.connect(g); g.connect(_audioCtx.destination);
+        o.frequency.value = freq; o.type = 'square';
+        g.gain.setValueAtTime(0, _audioCtx.currentTime);
+        g.gain.linearRampToValueAtTime(0.75, _audioCtx.currentTime + 0.02);
+        g.gain.exponentialRampToValueAtTime(0.001, _audioCtx.currentTime + 0.32);
+        o.start(); o.stop(_audioCtx.currentTime + 0.32);
+      }, i * 300);
+    });
+  } catch(e) {}
+}
+
+function _showDeliveryBanner(title, body) {
+  const existing = document.getElementById("_deliveryNotifBanner");
+  if (existing) existing.remove();
+  const el = document.createElement("div");
+  el.id = "_deliveryNotifBanner";
+  el.style.cssText = `position:fixed;top:12px;left:50%;transform:translateX(-50%);
+    z-index:99999;background:#fff;border-radius:14px;border-left:5px solid #e67e22;
+    box-shadow:0 8px 40px rgba(0,0,0,.3);padding:16px 20px;max-width:360px;
+    width:calc(100% - 24px);display:flex;gap:14px;align-items:flex-start;cursor:pointer;
+    animation:_dbBannerIn .3s ease`;
+  el.innerHTML = `
+    <div style="font-size:30px">🛵</div>
+    <div style="flex:1">
+      <div style="font-weight:900;font-size:14px;color:#111;margin-bottom:4px">${title}</div>
+      <div style="font-size:12px;color:#555;line-height:1.5">${body}</div>
+    </div>
+    <button onclick="document.getElementById('_deliveryNotifBanner')?.remove()"
+      style="background:none;border:none;font-size:18px;cursor:pointer;color:#999;flex-shrink:0">✖</button>`;
+  if (!document.getElementById("_dbBannerCSS")) {
+    const s = document.createElement("style");
+    s.id = "_dbBannerCSS";
+    s.textContent = "@keyframes _dbBannerIn{from{opacity:0;top:-20px}to{opacity:1;top:12px}}";
+    document.head.appendChild(s);
+  }
+  document.body.appendChild(el);
+  setTimeout(() => el?.remove(), 12000);
+}
+
+/* Listen Firestore delivery_notifications (fallback when FCM Cloud Function is delayed) */
+function _listenDeliveryNotifications(user) {
+  if (!db) return;
+  const since = new Date(Date.now() - 3600000);
+  db.collection("delivery_notifications")
+    .where("notifStatus", "==", "pending")
+    .where("riderId", "==", user.uid)
+    .orderBy("createdAt", "desc")
+    .limit(10)
+    .onSnapshot((snap) => {
+      snap.docChanges().forEach(change => {
+        if (change.type === "added") {
+          const d = change.doc.data();
+          const createdTs = d.createdAt?.toDate ? d.createdAt.toDate() : new Date(0);
+          if (createdTs < since) return;
+          playLoudDeliveryAlarm();
+          _showDeliveryBanner(d.title || "New Assignment!", d.body || "");
+          change.doc.ref.update({ notifStatus: "delivered" }).catch(() => {});
+        }
+      });
+    }, err => console.warn("[DeliveryNotif] Listen error:", err));
+}
+
+/* ════════════════════════════════
+   AUDIO BEEP (original — kept for new order detection in listenOrders)
+════════════════════════════════ */
+function playBeep() {
+  try {
+    if (!_audioCtx) _audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    [880, 1100].forEach((freq, i) => {
+      setTimeout(() => {
+        const o = _audioCtx.createOscillator(), g = _audioCtx.createGain();
+        o.connect(g); g.connect(_audioCtx.destination);
+        o.frequency.value = freq; o.type = 'sine';
+        g.gain.setValueAtTime(0, _audioCtx.currentTime);
+        g.gain.linearRampToValueAtTime(0.5, _audioCtx.currentTime+0.05);
+        g.gain.exponentialRampToValueAtTime(0.001, _audioCtx.currentTime+0.5);
+        o.start(); o.stop(_audioCtx.currentTime+0.5);
+      }, i*300);
+    });
+  } catch(e) {}
+}
+
+/* ════════════════════════════════
+   TOAST
+════════════════════════════════ */
+function showToast(msg, type='') {
+  const t = document.getElementById('dbToast');
+  t.textContent = msg;
+  t.className = 'toast show' + (type ? ' '+type : '');
+  clearTimeout(t._t);
+  t._t = setTimeout(() => { t.className = 'toast'; }, 3200);
+}
+
+/* ════════════════════════════════
+   AUTH STATE
+════════════════════════════════ */
+if (auth) {
+  auth.onAuthStateChanged(user => {
+    if (user) {
+      // Verify authorised delivery partner
+      if (!DELIVERY_EMAILS.includes(user.email)) {
+        auth.signOut();
+        document.getElementById('loginError').textContent = 'Access denied. Authorised delivery partners only.';
+        document.getElementById('loginScreen').style.display = 'flex';
+        document.getElementById('dashboard').style.display   = 'none';
+        DB_USER = null;
+        return;
+      }
+      DB_USER = user;
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('dashboard').style.display   = 'block';
+      document.getElementById('dbEmailDisplay').textContent = user.email;
+      startGPS();
+      listenOrders();
+      // ── Initialize FCM for background push (new assignment notifications) ──
+      setTimeout(() => _initDeliveryFCM(user), 1500);
+    } else {
+      document.getElementById('loginScreen').style.display = 'flex';
+      document.getElementById('dashboard').style.display   = 'none';
+      if (_unsubOrders) { _unsubOrders(); _unsubOrders = null; }
+      DB_USER = null;
+    }
+  });
+} else {
+  document.getElementById('loginError').textContent = 'Firebase unavailable. Please reload.';
+}
+
+function dbLogin() {
+  if (!auth) { document.getElementById('loginError').textContent = 'Service unavailable. Reload page.'; return; }
+  const e = document.getElementById('dbEmail').value.trim();
+  const p = document.getElementById('dbPass').value;
+  const err = document.getElementById('loginError');
+  err.textContent = '';
+  if (!e || !p) { err.textContent = 'Enter email and password'; return; }
+  err.textContent = 'Signing in…';
+  auth.signInWithEmailAndPassword(e, p)
+    .then(() => { err.textContent = ''; })
+    .catch(ex => { err.textContent = ex.message; });
+}
+
+function dbLogout() {
+  if (!auth) return;
+  if (_unsubOrders) { _unsubOrders(); _unsubOrders = null; }
+  auth.signOut().catch(() => {});
+}
+
+/* ════════════════════════════════
+   ONLINE TOGGLE
+════════════════════════════════ */
+function toggleOnline() {
+  const isOnline = document.getElementById('onlineToggle').checked;
+  document.getElementById('onlineLabel').textContent = isOnline ? '🟢 You are Online' : '🔴 You are Offline';
+  if (DB_USER && db) {
+    db.collection('delivery_boys').doc(DB_USER.uid).set({
+      online: isOnline,
+      email:  DB_USER.email,
+      name:   DB_USER.displayName || DB_USER.email,
+      uid:    DB_USER.uid,
+      gps:    GPS.lat ? {lat:GPS.lat, lng:GPS.lng} : null,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    }, {merge:true}).catch(() => {});
+  }
+}
+
+/* ════════════════════════════════
+   GPS
+════════════════════════════════ */
+function startGPS() {
+  if (!navigator.geolocation) {
+    document.getElementById('gpsStatus').textContent = 'GPS not supported';
+    return;
+  }
+  document.getElementById('gpsStatus').textContent = 'Getting GPS…';
+  navigator.geolocation.getCurrentPosition(
+    pos => {
+      GPS = { lat: pos.coords.latitude.toFixed(6), lng: pos.coords.longitude.toFixed(6) };
+      document.getElementById('gpsDot').className    = 'gps-dot active';
+      document.getElementById('gpsStatus').textContent  = 'GPS Active';
+      document.getElementById('gpsCoords').textContent  = `${GPS.lat}, ${GPS.lng}`;
+      if (DB_USER && db) {
+        db.collection('delivery_boys').doc(DB_USER.uid).set({
+          gps: GPS, email: DB_USER.email,
+          name: DB_USER.displayName || DB_USER.email,
+          uid: DB_USER.uid,
+          updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+        }, {merge:true}).catch(() => {});
+      }
+    },
+    () => {
+      document.getElementById('gpsStatus').textContent = 'GPS error — Allow location';
+      document.getElementById('gpsDot').className = 'gps-dot inactive';
+    },
+    { enableHighAccuracy:true, timeout:12000, maximumAge:30000 }
+  );
+}
+
+/* ════════════════════════════════
+   TAB SWITCHING  — BUG FIX: was broken due to operator precedence
+════════════════════════════════ */
+function switchTab(tab) {
+  currentTab = tab;
+  // Remove active from all tabs (corrected — was broken before)
+  ['assigned','inprogress','history'].forEach(t => {
+    document.getElementById('dtab-'+t)?.classList.remove('active');
+    // BUG FIX: was `'nav-'+t==='assigned'` which always evaluates 'nav-assigned'==='assigned'=false
+    const navId = t === 'assigned' ? 'nav-orders' : t === 'inprogress' ? 'nav-inprogress' : 'nav-history';
+    document.getElementById(navId)?.classList.remove('active');
+  });
+  document.getElementById('dtab-'+tab)?.classList.add('active');
+  const activeNavId = tab === 'assigned' ? 'nav-orders' : tab === 'inprogress' ? 'nav-inprogress' : 'nav-history';
+  document.getElementById(activeNavId)?.classList.add('active');
+  renderOrders();
+}
+
+/* ════════════════════════════════
+   LISTEN ORDERS
+════════════════════════════════ */
+function listenOrders() {
+  if (_unsubOrders) { _unsubOrders(); _unsubOrders = null; }
+  if (!db || !DB_USER) return;
+
+  _unsubOrders = db.collection('orders')
+    .where('assignedRiderId', '==', DB_USER.uid)
+    .limit(100)
+    .onSnapshot(snap => {
+      const newCount = snap.docs.filter(d => ['confirmed','packed'].includes(d.data().status)).length;
+      if (_lastOrderCount !== null && newCount > _lastOrderCount) {
+        playBeep();
+        showToast('🔔 New order assigned to you!', 'success');
+        document.getElementById('newOrderAlert').classList.add('show');
+        document.getElementById('newOrderAlertText').textContent = 'A new delivery has been assigned to you';
+        if (typeof Notification !== 'undefined' && Notification.permission === 'granted') {
+          try {
+            new Notification('🛵 New Delivery — SRICART', {
+              body: 'You have a new delivery assigned!', tag: 'delivery-assign'
+            });
+          } catch(e) {}
+        }
+      }
+      _lastOrderCount = newCount;
+      _allOrders = snap.docs.map(d => ({ id:d.id, _type: d.data().restaurantName ? 'food' : d.data().serviceType ? 'booking' : 'order', ...d.data() }));
+      _allOrders.sort((a, b) => (b.createdAt?.seconds||0) - (a.createdAt?.seconds||0));
+      renderOrders();
+      updateStats();
+    }, err => {
+      console.error('listenOrders error:', err.message);
+      showToast('⚠️ Could not load orders: ' + err.message, 'error');
+      _allOrders = []; renderOrders(); updateStats();
+    });
+}
+
+/* ════════════════════════════════
+   UPDATE STATS
+════════════════════════════════ */
+function updateStats() {
+  const today = new Date().toDateString();
+  document.getElementById('sAssigned').textContent   = _allOrders.filter(o => o.status==='confirmed' || o.status==='packed').length;
+  document.getElementById('sInProgress').textContent = _allOrders.filter(o => o.status==='out_for_delivery').length;
+  document.getElementById('sDelivered').textContent  = _allOrders.filter(o =>
+    o.status==='delivered' && o.updatedAt && new Date(o.updatedAt.seconds*1000).toDateString() === today
+  ).length;
+}
+
+/* ════════════════════════════════
+   RENDER ORDERS
+════════════════════════════════ */
+function renderOrders() {
+  let orders;
+  if (currentTab === 'assigned')    orders = _allOrders.filter(o => o.status==='confirmed' || o.status==='packed');
+  else if (currentTab === 'inprogress') orders = _allOrders.filter(o => o.status==='out_for_delivery');
+  else orders = _allOrders.filter(o => o.status==='delivered');
+
+  const c = document.getElementById('ordersContainer');
+  if (!orders.length) {
+    const msgs  = { assigned:'No orders assigned yet', inprogress:'No orders in progress', history:'No deliveries yet today' };
+    const icons = { assigned:'📭', inprogress:'🚀', history:'✅' };
+    c.innerHTML = `<div class="empty-state"><div class="empty-icon">${icons[currentTab]}</div><div class="empty-title">${msgs[currentTab]}</div><div class="empty-sub">${currentTab==='assigned'?'Admin will assign orders to you':'—'}</div></div>`;
+    return;
+  }
+
+  const titles = { assigned:'📦 Ready to Pick Up', inprogress:'🚀 Out for Delivery', history:'✅ Delivered Today' };
+
+  if (currentTab === 'history') {
+    c.innerHTML = `<div class="section-title">${titles.history}<span class="section-count">${orders.length}</span></div>` +
+      orders.map(o => {
+        const dt    = o.updatedAt ? new Date(o.updatedAt.seconds*1000).toLocaleString('en-IN',{dateStyle:'short',timeStyle:'short'}) : '—';
+        const items = o.items ? o.items.map(i => i.name).join(', ') : o.summary||'—';
+        return `<div class="history-card">
+          <div class="history-check">✅</div>
+          <div style="flex:1">
+            <div style="font-size:13px;font-weight:800;color:#1a1a1a">${o.name||'—'}</div>
+            <div style="font-size:11px;color:#555;margin-top:2px">${items}</div>
+            <div style="font-size:10px;color:#888;margin-top:3px">Delivered: ${dt}</div>
+          </div>
+          ${o.total>0?`<div style="font-size:15px;font-weight:900;color:#27ae60">₹${o.total.toLocaleString('en-IN')}</div>`:''}
+        </div>`;
+      }).join('');
+    return;
+  }
+
+  c.innerHTML = `<div class="section-title">${titles[currentTab]}<span class="section-count">${orders.length}</span></div>` +
+    orders.map(o => {
+      const dt    = o.createdAt ? new Date(o.createdAt.seconds*1000).toLocaleString('en-IN',{dateStyle:'short',timeStyle:'short'}) : '—';
+      const items = o.items ? o.items.map(i => `${i.name} × ${i.qtyRaw||i.qty}`).join(' · ') : o.summary||'—';
+      const st    = o.status;
+      const mapUrl  = o.gpsMapLink || (o.gps ? `https://maps.google.com/?q=${o.gps.lat},${o.gps.lng}` : '');
+      const navUrl  = o.gps ? `https://maps.google.com/maps?saddr=My+Location&daddr=${o.gps.lat},${o.gps.lng}` : o.gpsMapLink||'';
+      const coordText = o.gps ? `${parseFloat(o.gps.lat).toFixed(6)}, ${parseFloat(o.gps.lng).toFixed(6)}` : '';
+
+      let actions = '';
+      if (st === 'confirmed' || st === 'packed') {
+        actions = `<button class="act-btn act-start"   onclick="updateOrderStatus('${o.id}','out_for_delivery')">🚀 Start Delivery</button>
+                   ${navUrl ? `<button class="act-btn act-map" onclick="window.open('${navUrl}','_blank')">🗺 Navigate</button>` : ''}
+                   ${o.phone ? `<a class="act-btn act-call" href="tel:${o.phone.startsWith('+')?o.phone:'+91'+o.phone}">📞 Call</a>` : ''}`;
+      } else if (st === 'out_for_delivery') {
+        actions = `<button class="act-btn act-deliver" onclick="markDelivered('${o.id}')">✅ Mark Delivered</button>
+                   ${navUrl ? `<button class="act-btn act-map" onclick="window.open('${navUrl}','_blank')">🗺 Navigate</button>` : ''}
+                   ${o.phone ? `<a class="act-btn act-call" href="tel:${o.phone.startsWith('+')?o.phone:'+91'+o.phone}">📞 Call</a>` : ''}`;
+      }
+
+      return `<div class="order-card type-${o._type||'order'}">
+        <div class="order-card-top">
+          <div>
+            <div class="order-name">${o.name||o.userName||'—'}</div>
+            <div class="order-meta">📱 ${o.phone||'—'} · 📍 ${o.location||o.serviceArea||'—'}</div>
+            <div class="order-meta" style="margin-top:2px">${dt} · #${o.id.substring(0,8).toUpperCase()}</div>
+          </div>
+          <span class="badge badge-${st}">${st.replace(/_/g,' ')}</span>
+        </div>
+        <div class="order-body">
+          <div class="order-items">🛒 ${items}</div>
+          ${o.address ? `<div class="order-address">📍 <span>${o.address}</span></div>` : ''}
+          ${o.instructions ? `<div class="order-instructions">📝 ${o.instructions}</div>` : ''}
+          ${o.giftMsg ? `<div class="order-instructions" style="background:rgba(106,173,46,0.08);border-color:rgba(106,173,46,0.25)">🎁 ${o.giftMsg}</div>` : ''}
+          ${(mapUrl||coordText) ? `<div style="background:rgba(68,201,255,0.08);border:1px solid rgba(68,201,255,0.25);border-radius:10px;padding:9px 12px;margin-bottom:10px;font-size:12px">
+            <div style="font-weight:800;color:var(--blue);margin-bottom:4px">📍 Customer Location</div>
+            ${coordText ? `<div style="font-family:monospace;color:#555;font-size:10px;margin-bottom:4px">${coordText}</div>` : ''}
+            ${mapUrl ? `<a href="${mapUrl}" target="_blank" style="color:var(--blue);font-weight:700;font-size:11px;text-decoration:none">🗺 Open in Google Maps →</a>` : ''}
+          </div>` : ''}
+          ${o.total>0 ? `<div style="font-size:15px;font-weight:900;color:#27ae60;margin-bottom:10px">Total: ₹${o.total.toLocaleString('en-IN')}</div>` : ''}
+          <div class="order-actions">${actions}</div>
+        </div>
+      </div>`;
+    }).join('');
+}
+
+/* ════════════════════════════════
+   STATUS UPDATE FUNCTIONS
+════════════════════════════════ */
+function updateOrderStatus(id, newStatus) {
+  if (!db || !DB_USER) { showToast('Service unavailable', 'error'); return; }
+  const now = new Date();
+  db.collection('orders').doc(id).get().then(doc => {
+    const hist = doc.data()?.statusHistory || [];
+    hist.push({ status: newStatus, time: now.toISOString(), by: DB_USER.email });
+    return db.collection('orders').doc(id).update({
+      status: newStatus,
+      deliveryBoyId:    DB_USER.uid,
+      deliveryBoyEmail: DB_USER.email,
+      deliveryBoyName:  DB_USER.displayName || DB_USER.email,
+      deliveryGPS:      GPS.lat ? GPS : null,
+      statusHistory:    hist,
+      updatedAt:        firebase.firestore.FieldValue.serverTimestamp(),
+      updatedAtISO:     now.toISOString(),
+      updatedBy:        DB_USER.email,
+      ...(newStatus === 'out_for_delivery' ? { dispatchedAt: now.toISOString() } : {})
+    });
+  })
+  .then(() => showToast(newStatus === 'out_for_delivery' ? '🚀 Delivery started!' : '✅ Done', 'success'))
+  .catch(e => showToast('Error: ' + e.message, 'error'));
+}
+
+function markDelivered(id) {
+  if (!confirm('Mark this order as DELIVERED?')) return;
+  if (!db || !DB_USER) { showToast('Service unavailable', 'error'); return; }
+  startGPS(); // refresh GPS before logging delivery
+  const now = new Date();
+  db.collection('orders').doc(id).update({
+    status:           'delivered',
+    deliveryBoyId:    DB_USER.uid,
+    deliveryBoyEmail: DB_USER.email,
+    deliveryBoyName:  DB_USER.displayName || DB_USER.email,
+    deliveryGPS:      GPS.lat ? GPS : null,
+    deliveredAt:      now.toISOString(),
+    updatedAt:        firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAtISO:     now.toISOString(),
+    updatedBy:        DB_USER.email
+  }).then(() => showToast('🎉 Delivered! Great job!', 'success'))
+    .catch(e => showToast('Error: ' + e.message, 'error'));
+}
+</script>
+</body>
+</html>

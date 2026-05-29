@@ -480,7 +480,7 @@ try {
 ══════════════════════════════ */
 const ADMIN_EMAILS = [
   // ⚠️ REPLACE THESE with your actual admin Gmail addresses
-  'admin@sricart.in',
+  'sriltechh@gmail.com',
   'sricartadmin@gmail.com'
   // Add more admin emails here if needed
 ];
@@ -507,7 +507,7 @@ function showDashboard(user) {
    Registers admin device for loud FCM push even when tab is closed.
    Cloud Function must read admin_notifications collection and send via FCM.
 ══════════════════════════════ */
-const ADMIN_FCM_VAPID_KEY = "YOUR_VAPID_KEY_HERE"; // ⚠️ Same VAPID key from Firebase Console
+const ADMIN_FCM_VAPID_KEY = "BD7P8OtbT-9Zt3z8-9SqAQiIb6ZDBCCGmKokKB5ceEtW6W0zDXvwyba5mg_4HUNxZywpK-CVDdkEqfXStCkFH_U"; // ⚠️ Same VAPID key from Firebase Console
 
 let _adminFCM = null;
 try { _adminFCM = firebase.messaging(); } catch(e) { console.info("[AdminFCM] Not supported:", e.message); }

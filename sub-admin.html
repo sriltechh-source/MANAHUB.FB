@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"/>
+<title>SRICART Sub-Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --brand:#c0392b;--brand2:#e74c3c;--accent:#c0392b;
+  --bg:#f4f6f8;--bg-card:#fff;--border:#e8ecf0;
+  --text:#111;--text2:#555;--text3:#999;
+  --font:'Plus Jakarta Sans',sans-serif;
+  --radius:14px;--shadow:0 2px 16px rgba(0,0,0,.08);
+}
+body{font-family:var(--font);background:var(--bg);color:var(--text);min-height:100vh;}
+
+/* ── Login ── */
+#loginScreen{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  min-height:100vh;padding:24px;background:linear-gradient(135deg,#c0392b,#922b21);}
+.login-card{background:#fff;border-radius:20px;padding:32px 24px;width:100%;max-width:380px;
+  box-shadow:0 20px 60px rgba(0,0,0,.2);}
+.login-logo{text-align:center;margin-bottom:24px;}
+.login-logo-icon{font-size:48px;display:block;margin-bottom:8px;}
+.login-logo h1{font-size:22px;font-weight:900;color:var(--brand);}
+.login-logo p{font-size:12px;color:var(--text2);margin-top:4px;}
+.login-input{width:100%;padding:13px 16px;border:1.5px solid var(--border);border-radius:12px;
+  font-family:var(--font);font-size:14px;margin-bottom:12px;outline:none;transition:.2s;}
+.login-input:focus{border-color:var(--brand);}
+.login-btn{width:100%;padding:14px;background:var(--brand);color:#fff;border:none;
+  border-radius:12px;font-family:var(--font);font-size:15px;font-weight:800;cursor:pointer;
+  transition:.2s;}
+.login-btn:active{opacity:.85;}
+.login-err{color:var(--brand);font-size:12px;text-align:center;margin-top:8px;min-height:18px;}
+
+/* ── Dashboard ── */
+#dashboard{display:none;flex-direction:column;min-height:100vh;}
+
+/* Header */
+.dash-header{background:var(--brand);color:#fff;padding:16px 16px 12px;
+  display:flex;align-items:center;justify-content:space-between;
+  position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(0,0,0,.15);}
+.dash-header-left h1{font-size:17px;font-weight:900;}
+.dash-header-left p{font-size:11px;opacity:.8;margin-top:2px;}
+.dash-loc-badge{background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.4);
+  color:#fff;padding:5px 12px;border-radius:20px;font-size:12px;font-weight:800;}
+.dash-logout{background:rgba(255,255,255,.15);border:1px solid rgba(255,255,255,.3);
+  color:#fff;padding:7px 14px;border-radius:10px;font-size:12px;font-weight:700;cursor:pointer;}
+
+/* Stats */
+.stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding:14px 14px 0;}
+.stat-card{background:var(--bg-card);border-radius:var(--radius);padding:14px 10px;
+  text-align:center;box-shadow:var(--shadow);}
+.stat-num{font-size:26px;font-weight:900;color:var(--brand);}
+.stat-label{font-size:11px;color:var(--text2);margin-top:3px;font-weight:600;}
+
+/* Filter tabs */
+.filter-tabs{display:flex;gap:8px;padding:14px 14px 0;overflow-x:auto;scrollbar-width:none;}
+.filter-tabs::-webkit-scrollbar{display:none;}
+.ftab{padding:7px 16px;border-radius:20px;font-size:12px;font-weight:700;cursor:pointer;
+  white-space:nowrap;border:1.5px solid var(--border);background:var(--bg-card);
+  color:var(--text2);transition:.2s;}
+.ftab.active{background:var(--brand);color:#fff;border-color:var(--brand);}
+
+/* Search */
+.search-row{padding:10px 14px 0;}
+.search-input{width:100%;padding:11px 16px;border:1.5px solid var(--border);border-radius:12px;
+  font-family:var(--font);font-size:13px;outline:none;background:var(--bg-card);}
+.search-input:focus{border-color:var(--brand);}
+
+/* Orders list */
+.orders-list{padding:12px 14px 100px;display:flex;flex-direction:column;gap:12px;}
+.order-card{background:var(--bg-card);border-radius:var(--radius);padding:14px;
+  box-shadow:var(--shadow);border-left:4px solid #ddd;animation:fadeIn .3s ease;}
+.order-card.pending{border-left-color:#f39c12;}
+.order-card.confirmed{border-left-color:#3498db;}
+.order-card.packed{border-left-color:#9b59b6;}
+.order-card.out_for_delivery{border-left-color:#e67e22;}
+.order-card.delivered{border-left-color:#27ae60;}
+.order-card.cancelled{border-left-color:#e74c3c;}
+
+.oc-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:8px;}
+.oc-id{font-size:11px;color:var(--text3);font-weight:700;}
+.oc-time{font-size:11px;color:var(--text3);}
+.oc-name{font-size:15px;font-weight:800;margin-bottom:3px;}
+.oc-phone{font-size:12px;color:var(--text2);margin-bottom:4px;}
+.oc-address{font-size:12px;color:var(--text2);margin-bottom:8px;line-height:1.4;}
+.oc-items{font-size:12px;color:var(--text2);background:var(--bg);padding:8px;
+  border-radius:8px;margin-bottom:8px;line-height:1.5;}
+.oc-footer{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;}
+.oc-total{font-size:15px;font-weight:900;color:var(--brand);}
+.oc-loc{font-size:11px;background:#f0f4ff;color:#2c5282;padding:3px 8px;
+  border-radius:6px;font-weight:700;}
+.oc-type{font-size:10px;background:var(--bg);color:var(--text2);padding:3px 8px;
+  border-radius:6px;font-weight:700;text-transform:uppercase;}
+
+/* Status badge */
+.status-badge{display:inline-block;padding:4px 10px;border-radius:6px;font-size:11px;
+  font-weight:800;text-transform:uppercase;}
+.status-badge.pending{background:#fff8e7;color:#f39c12;}
+.status-badge.confirmed{background:#e8f4ff;color:#3498db;}
+.status-badge.packed{background:#f3e8ff;color:#9b59b6;}
+.status-badge.out_for_delivery{background:#fff3e8;color:#e67e22;}
+.status-badge.delivered{background:#e8f8f0;color:#27ae60;}
+.status-badge.cancelled{background:#fde8e8;color:#e74c3c;}
+
+/* Actions */
+.oc-actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+.oc-actions select{flex:1;min-width:140px;padding:8px 10px;border:1.5px solid var(--border);
+  border-radius:8px;font-family:var(--font);font-size:12px;font-weight:700;
+  background:var(--bg-card);outline:none;}
+.oc-actions button{padding:8px 14px;border-radius:8px;font-family:var(--font);
+  font-size:12px;font-weight:800;cursor:pointer;border:none;transition:.2s;}
+.btn-update{background:var(--brand);color:#fff;}
+.btn-call{background:#27ae60;color:#fff;}
+.btn-wa{background:#25d366;color:#fff;}
+.rider-row{display:flex;gap:6px;margin-top:6px;width:100%;}
+.rider-input{flex:1;padding:8px 10px;border:1.5px solid var(--border);border-radius:8px;
+  font-family:var(--font);font-size:12px;outline:none;}
+.rider-input:focus{border-color:var(--brand);}
+
+/* Empty state */
+.empty-state{text-align:center;padding:60px 24px;color:var(--text2);}
+.empty-icon{font-size:48px;margin-bottom:12px;}
+.empty-title{font-size:17px;font-weight:800;margin-bottom:8px;}
+
+/* Notification banner */
+#_subAdminBanner{display:none;}
+
+/* Toast */
+#subAdminToast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);
+  background:#111;color:#fff;padding:10px 20px;border-radius:10px;font-size:13px;
+  font-weight:700;z-index:9999;display:none;white-space:nowrap;}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+
+<!-- ═══════ LOGIN SCREEN ═══════ -->
+<div id="loginScreen">
+  <div class="login-card">
+    <div class="login-logo">
+      <span class="login-logo-icon">🏪</span>
+      <h1>SRICART Sub-Admin</h1>
+      <p>Location Dashboard Login</p>
+    </div>
+    <input class="login-input" id="loginEmail" type="email" placeholder="Your Email" autocomplete="email"/>
+    <input class="login-input" id="loginPass" type="password" placeholder="Password" autocomplete="current-password"/>
+    <button class="login-btn" onclick="doLogin()">Sign In →</button>
+    <div class="login-err" id="loginError"></div>
+  </div>
+</div>
+
+<!-- ═══════ DASHBOARD ═══════ -->
+<div id="dashboard">
+
+  <!-- Header -->
+  <div class="dash-header">
+    <div class="dash-header-left">
+      <h1>SRICART Sub-Admin</h1>
+      <p id="adminEmailDisplay">—</p>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <span class="dash-loc-badge" id="locationBadge">📍 —</span>
+      <button class="dash-logout" onclick="doLogout()">Logout</button>
+    </div>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-row">
+    <div class="stat-card">
+      <div class="stat-num" id="sTotalOrders">0</div>
+      <div class="stat-label">Total</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="sPending">0</div>
+      <div class="stat-label">Pending</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-num" id="sDelivered">0</div>
+      <div class="stat-label">Delivered</div>
+    </div>
+  </div>
+
+  <!-- Filter tabs -->
+  <div class="filter-tabs" id="filterTabs">
+    <div class="ftab active" onclick="setFilter('all',this)">All</div>
+    <div class="ftab" onclick="setFilter('pending',this)">Pending</div>
+    <div class="ftab" onclick="setFilter('confirmed',this)">Confirmed</div>
+    <div class="ftab" onclick="setFilter('packed',this)">Packed</div>
+    <div class="ftab" onclick="setFilter('out_for_delivery',this)">Out for Delivery</div>
+    <div class="ftab" onclick="setFilter('delivered',this)">Delivered</div>
+    <div class="ftab" onclick="setFilter('cancelled',this)">Cancelled</div>
+  </div>
+
+  <!-- Search -->
+  <div class="search-row">
+    <input class="search-input" id="searchInput" placeholder="🔍 Search by name, phone, items..."
+      oninput="applyFilters()"/>
+  </div>
+
+  <!-- Orders list -->
+  <div class="orders-list" id="ordersList">
+    <div class="empty-state">
+      <div class="empty-icon">📦</div>
+      <div class="empty-title">Loading orders...</div>
+    </div>
+  </div>
+
+</div>
+
+<!-- Alarm banner -->
+<div id="_subAdminBanner"></div>
+<div id="subAdminToast"></div>
+
+<script>
+/* ══════════════════════════════
+   FIREBASE INIT
+══════════════════════════════ */
+const firebaseConfig = {
+  apiKey:            "AIzaSyAp-g1syTD9Q8ZRgjdxQDbFF6D9l9zHISY",
+  authDomain:        "fir-v1-a695a.firebaseapp.com",
+  projectId:         "fir-v1-a695a",
+  storageBucket:     "fir-v1-a695a.firebasestorage.app",
+  messagingSenderId: "50283321145",
+  appId:             "1:50283321145:web:94c4c204309c0914ff7ae8"
+};
+
+let auth, db;
+try {
+  firebase.initializeApp(firebaseConfig);
+  auth = firebase.auth();
+  db   = firebase.firestore();
+} catch(e) {
+  document.getElementById('loginError').textContent = 'Service error. Please reload.';
+}
+
+/* ══════════════════════════════
+   LOCATION → EMAIL MAPPING
+   Add your sub-admin emails here
+   One email = one location
+══════════════════════════════ */
+const LOCATION_EMAILS = {
+  "khanapur@sricart.in":      "Khanapur",
+  "bhainsa@sricart.in":       "Bhainsa",
+  "nirmal@sricart.in":        "Nirmal",
+  "mudhole@sricart.in":       "Mudhole",
+  "dilawarpur@sricart.in":    "Dilawarpur",
+  "sarangapur@sricart.in":    "Sarangapur",
+  "mamda@sricart.in":         "Mamda",
+  "kubeer@sricart.in":        "Kubeer",
+  "narsapur@sricart.in":      "Narsapur",
+  "kaddam@sricart.in":        "Kaddam",
+  "jukkal@sricart.in":        "Jukkal",
+  "laxmanchanda@sricart.in":  "Laxmanchanda",
+  "pitlam@sricart.in":        "Pitlam",
+  "babasagar@sricart.in":     "Babasagar",
+  "kuntala@sricart.in":       "Kuntala",
+};
+
+/* ══════════════════════════════
+   STATE
+══════════════════════════════ */
+let _myLocation  = "";
+let _allOrders   = [];
+let _activeFilter = "all";
+let _unsubs       = [];
+let _knownIds     = new Set();
+let _initialLoad  = { orders: false, bookings: false, food: false };
+let _audioCtx     = null;
+let _alarmInterval = null;
+let _alarmActive   = false;
+
+/* ══════════════════════════════
+   LOGIN / LOGOUT
+══════════════════════════════ */
+function doLogin() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pass  = document.getElementById('loginPass').value;
+  const errEl = document.getElementById('loginError');
+  errEl.textContent = '';
+
+  if (!email || !pass) { errEl.textContent = 'Enter email and password'; return; }
+  if (!LOCATION_EMAILS[email]) {
+    errEl.textContent = 'This email is not registered as a sub-admin.';
+    return;
+  }
+
+  auth.signInWithEmailAndPassword(email, pass)
+    .then(() => {})
+    .catch(err => { errEl.textContent = err.message; });
+}
+
+function doLogout() {
+  if (!confirm('Sign out?')) return;
+  stopListeners();
+  auth.signOut().catch(() => {});
+}
+
+auth.onAuthStateChanged(user => {
+  if (user && LOCATION_EMAILS[user.email]) {
+    _myLocation = LOCATION_EMAILS[user.email];
+    document.getElementById('loginScreen').style.display  = 'none';
+    document.getElementById('dashboard').style.display    = 'flex';
+    document.getElementById('adminEmailDisplay').textContent = user.email;
+    document.getElementById('locationBadge').textContent  = '📍 ' + _myLocation;
+    document.title = 'SRICART — ' + _myLocation;
+    startListeners();
+    _initSubFCM(user);
+  } else if (user) {
+    auth.signOut();
+    document.getElementById('loginError').textContent = 'Access denied.';
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('dashboard').style.display   = 'none';
+  } else {
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('dashboard').style.display   = 'none';
+    stopListeners();
+  }
+});
+
+/* ══════════════════════════════
+   LISTENERS — Only fetch this location's orders
+══════════════════════════════ */
+function stopListeners() {
+  _unsubs.forEach(u => { try { u(); } catch(e) {} });
+  _unsubs = [];
+}
+
+function startListeners() {
+  stopListeners();
+  _knownIds    = new Set();
+  _initialLoad = { orders: false, bookings: false, food: false };
+  let _ordersData = [], _bookingsData = [], _foodData = [];
+
+  function merge() {
+    _allOrders = [..._ordersData, ..._bookingsData, ..._foodData]
+      .sort((a,b) => (b._ts||0) - (a._ts||0));
+    updateStats();
+    applyFilters();
+  }
+
+  function onNew(doc, type) {
+    if (_knownIds.has(doc.id)) return;
+    _knownIds.add(doc.id);
+    const d = doc.data();
+    let age = 0;
+    if (d.createdAt && d.createdAt.toMillis) age = (Date.now()-d.createdAt.toMillis())/1000;
+    else if (d.createdAtISO) age = (Date.now()-new Date(d.createdAtISO).getTime())/1000;
+    if (age > 60) return;
+    const icons = { order:'🛒', booking:'📋', food:'🍽️' };
+    const name  = d.name || d.customerName || 'Customer';
+    const phone = d.phone || '';
+    const total = d.total > 0 ? ' — ₹'+d.total : '';
+    _startAlarm(
+      (icons[type]||'🔔') + ' New ' + type + ' in ' + _myLocation + ' — SRICART',
+      name + (phone ? ' ('+phone+')' : '') + total
+    );
+  }
+
+  // ── Listen to orders for THIS location only ──
+  const u1 = db.collection('orders')
+    .where('location','==',_myLocation)
+    .orderBy('createdAt','desc').limit(200)
+    .onSnapshot(snap => {
+      _ordersData = snap.docs.map(d=>({id:d.id,_col:'orders',_type:'order',_ts:d.data().createdAt?.seconds||0,...d.data()}));
+      snap.docChanges().forEach(c => {
+        if (c.type==='added') {
+          if (_initialLoad.orders) onNew(c.doc,'order');
+          else _knownIds.add(c.doc.id);
+        }
+      });
+      _initialLoad.orders = true;
+      merge();
+    }, err => console.warn('orders err:',err));
+
+  const u2 = db.collection('bookings')
+    .where('location','==',_myLocation)
+    .orderBy('createdAt','desc').limit(200)
+    .onSnapshot(snap => {
+      _bookingsData = snap.docs.map(d=>({id:d.id,_col:'bookings',_type:'booking',_ts:d.data().createdAt?.seconds||0,...d.data()}));
+      snap.docChanges().forEach(c => {
+        if (c.type==='added') {
+          if (_initialLoad.bookings) onNew(c.doc,'booking');
+          else _knownIds.add(c.doc.id);
+        }
+      });
+      _initialLoad.bookings = true;
+      merge();
+    }, err => console.warn('bookings err:',err));
+
+  const u3 = db.collection('food_orders')
+    .where('location','==',_myLocation)
+    .orderBy('createdAt','desc').limit(200)
+    .onSnapshot(snap => {
+      _foodData = snap.docs.map(d=>({id:d.id,_col:'food_orders',_type:'food',_ts:d.data().createdAt?.seconds||0,...d.data()}));
+      snap.docChanges().forEach(c => {
+        if (c.type==='added') {
+          if (_initialLoad.food) onNew(c.doc,'food');
+          else _knownIds.add(c.doc.id);
+        }
+      });
+      _initialLoad.food = true;
+      merge();
+    }, err => console.warn('food err:',err));
+
+  _unsubs = [u1,u2,u3];
+}
+
+/* ══════════════════════════════
+   STATS
+══════════════════════════════ */
+function updateStats() {
+  document.getElementById('sTotalOrders').textContent = _allOrders.length;
+  document.getElementById('sPending').textContent     = _allOrders.filter(o=>o.status==='pending').length;
+  document.getElementById('sDelivered').textContent   = _allOrders.filter(o=>o.status==='delivered').length;
+}
+
+/* ══════════════════════════════
+   FILTER + SEARCH
+══════════════════════════════ */
+let _currentFilter = 'all';
+
+function setFilter(f, el) {
+  _currentFilter = f;
+  document.querySelectorAll('.ftab').forEach(t => t.classList.remove('active'));
+  el.classList.add('active');
+  applyFilters();
+}
+
+function applyFilters() {
+  const q = (document.getElementById('searchInput')?.value || '').toLowerCase();
+  let list = _allOrders;
+  if (_currentFilter !== 'all') list = list.filter(o => o.status === _currentFilter);
+  if (q) list = list.filter(o =>
+    (o.name||'').toLowerCase().includes(q) ||
+    (o.phone||'').includes(q) ||
+    (o.summary||'').toLowerCase().includes(q) ||
+    (o.address||'').toLowerCase().includes(q)
+  );
+  renderOrders(list);
+}
+
+/* ══════════════════════════════
+   RENDER ORDERS
+══════════════════════════════ */
+function renderOrders(list) {
+  const el = document.getElementById('ordersList');
+  if (!list || !list.length) {
+    el.innerHTML = `<div class="empty-state">
+      <div class="empty-icon">📭</div>
+      <div class="empty-title">No orders for ${_myLocation}</div>
+      <div style="font-size:13px;color:var(--text2);">New orders will appear here automatically</div>
+    </div>`;
+    return;
+  }
+
+  el.innerHTML = list.map(o => {
+    const typeIcons = { order:'🛒', booking:'📋', food:'🍽️' };
+    const icon = typeIcons[o._type] || '📦';
+    const statusClass = (o.status||'pending').replace(/\s/g,'_');
+    const time = o.createdAtISO ? new Date(o.createdAtISO).toLocaleString('en-IN',{
+      day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'
+    }) : '—';
+    const total = o.total > 0 ? '₹' + Number(o.total).toLocaleString('en-IN') : '—';
+    const summary = o.summary || o.itemNames || (o.items ? o.items.map(i=>i.name).join(', ') : '') || o.title || '—';
+    const statusOptions = ['pending','confirmed','packed','out_for_delivery','delivered','cancelled'];
+
+    return `<div class="order-card ${statusClass}" id="card-${o.id}">
+      <div class="oc-header">
+        <span class="oc-id">${icon} ${o.id.substring(0,8).toUpperCase()}</span>
+        <span class="oc-time">${time}</span>
+      </div>
+      <div class="oc-name">${o.name || '—'}</div>
+      <div class="oc-phone">📞 ${o.phone || '—'}</div>
+      <div class="oc-address">📍 ${o.address || o.deliveryAddress || '—'}</div>
+      <div class="oc-items">${summary.substring(0,120)}</div>
+      <div class="oc-footer">
+        <span class="oc-total">${total}</span>
+        <span class="status-badge ${statusClass}">${(o.status||'pending').replace(/_/g,' ')}</span>
+        <span class="oc-loc">📍 ${o.location || _myLocation}</span>
+        <span class="oc-type">${o._type}</span>
+      </div>
+      <div class="oc-actions">
+        <select id="sel-${o.id}">
+          ${statusOptions.map(s=>`<option value="${s}" ${s===o.status?'selected':''}>${s.replace(/_/g,' ')}</option>`).join('')}
+        </select>
+        <button class="btn-update" onclick="updateStatus('${o.id}','${o._col}')">✓ Update</button>
+        ${o.phone ? `<button class="btn-call" onclick="window.location.href='tel:${o.phone}'">📞</button>` : ''}
+        ${o.phone ? `<button class="btn-wa" onclick="openWA('${o.phone}','${(o.name||'').replace(/'/g,'')}')">💬</button>` : ''}
+      </div>
+      <div class="rider-row">
+        <input class="rider-input" id="rider-${o.id}" placeholder="Rider name..." value="${o.assignedRiderName||''}"/>
+        <input class="rider-input" id="riderId-${o.id}" placeholder="Rider ID (UID)..." value="${o.assignedRiderId||''}" style="max-width:130px;"/>
+        <button class="btn-update" onclick="assignRider('${o.id}','${o._col}')">🛵 Assign</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+/* ══════════════════════════════
+   UPDATE STATUS
+══════════════════════════════ */
+async function updateStatus(id, col) {
+  const sel = document.getElementById('sel-'+id);
+  if (!sel || !db) return;
+  const newStatus = sel.value;
+  const now = firebase.firestore.FieldValue.serverTimestamp();
+  try {
+    await db.collection(col).doc(id).update({
+      status: newStatus,
+      [`${newStatus}At`]: now,
+      updatedAt: now,
+    });
+    showToast('✅ Status → ' + newStatus.replace(/_/g,' '));
+
+    // Queue customer notification
+    const orderDoc = await db.collection(col).doc(id).get();
+    const d = orderDoc.data() || {};
+    if (d.userId && d.userId !== 'guest') {
+      const msgs = {
+        confirmed:  { title:'🎉 Order Confirmed — SRICART', body:`Hi ${d.name||''}! Your order is confirmed.` },
+        packed:     { title:'📦 Order Packed — SRICART',    body:`Your order is packed and ready for dispatch!` },
+        out_for_delivery: { title:'🚀 Out for Delivery — SRICART', body:`Your order is on the way!` },
+        delivered:  { title:'📦 Delivered — SRICART',       body:`Your order has been delivered! Enjoy 😊` },
+        cancelled:  { title:'❌ Cancelled — SRICART',       body:`Your order has been cancelled.` },
+      };
+      const msg = msgs[newStatus];
+      if (msg) {
+        await db.collection('customer_notifications').add({
+          userId: d.userId, userEmail: d.userEmail||'',
+          orderId: id, orderType: col, status: newStatus,
+          title: msg.title, body: msg.body,
+          url:'/', sound:'soft', role:'customer',
+          notifStatus:'pending',
+          createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        });
+        if (newStatus === 'delivered') {
+          await db.collection('customer_notifications').add({
+            userId: d.userId, userEmail: d.userEmail||'',
+            orderId: id, status:'thankyou',
+            title:'💚 Thank You — SRICART',
+            body:`Thank you ${d.name||''}! We loved serving you. Order again anytime 🙏`,
+            url:'/', sound:'soft', role:'customer',
+            notifStatus:'pending', sendAfterSeconds:30,
+            createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+          });
+        }
+      }
+    }
+  } catch(e) {
+    showToast('❌ Error: ' + e.message);
+  }
+}
+
+/* ══════════════════════════════
+   ASSIGN RIDER
+══════════════════════════════ */
+async function assignRider(id, col) {
+  const riderName = (document.getElementById('rider-'+id)?.value||'').trim();
+  const riderId   = (document.getElementById('riderId-'+id)?.value||'').trim();
+  if (!riderName) { showToast('Enter rider name first'); return; }
+  if (!db) return;
+  try {
+    await db.collection(col).doc(id).update({
+      assignedRiderName: riderName,
+      assignedRiderId:   riderId || riderName,
+      assignedAt:        firebase.firestore.FieldValue.serverTimestamp(),
+    });
+    showToast('🛵 Rider assigned: ' + riderName);
+    // Queue delivery notification
+    await db.collection('delivery_notifications').add({
+      riderName, riderId: riderId || riderName,
+      orderId: id, orderType: col,
+      title: '🛵 New Delivery Assigned — SRICART',
+      body: 'You have a new delivery in ' + _myLocation,
+      url: '/delivery.html', sound:'loud', role:'delivery',
+      notifStatus:'pending',
+      createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    });
+  } catch(e) {
+    showToast('❌ ' + e.message);
+  }
+}
+
+/* ══════════════════════════════
+   WHATSAPP
+══════════════════════════════ */
+function openWA(phone, name) {
+  const msg = encodeURIComponent(`Hello ${name}! Your SRICART order from ${_myLocation} — any updates needed?`);
+  window.open(`https://wa.me/91${phone}?text=${msg}`, '_blank');
+}
+
+/* ══════════════════════════════
+   AUDIO ALARM SYSTEM
+══════════════════════════════ */
+document.addEventListener('touchstart', _warmAudio, {passive:true});
+document.addEventListener('click', _warmAudio, {passive:true});
+
+function _warmAudio() {
+  try {
+    if (!_audioCtx) _audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    if (_audioCtx.state === 'suspended') _audioCtx.resume();
+  } catch(e) {}
+}
+
+function _playAlarm() {
+  try {
+    if (!_audioCtx) _audioCtx = new (window.AudioContext||window.webkitAudioContext)();
+    if (_audioCtx.state === 'suspended') _audioCtx.resume();
+    const pattern = [
+      {freq:1200,dur:0.25,vol:1.0},{freq:800,dur:0.15,vol:0.9},
+      {freq:1200,dur:0.25,vol:1.0},{freq:800,dur:0.15,vol:0.9},
+      {freq:1400,dur:0.25,vol:1.0},{freq:800,dur:0.15,vol:0.9},
+      {freq:1600,dur:0.40,vol:1.0},
+    ];
+    let offset = 0;
+    pattern.forEach(({freq,dur,vol}) => {
+      const o = _audioCtx.createOscillator(), g = _audioCtx.createGain();
+      o.connect(g); g.connect(_audioCtx.destination);
+      o.type = 'square'; o.frequency.value = freq;
+      const t = _audioCtx.currentTime + offset;
+      g.gain.setValueAtTime(0,t);
+      g.gain.linearRampToValueAtTime(vol,t+0.01);
+      g.gain.exponentialRampToValueAtTime(0.001,t+dur-0.01);
+      o.start(t); o.stop(t+dur);
+      offset += dur + 0.08;
+    });
+  } catch(e) {}
+  try { navigator.vibrate && navigator.vibrate([300,100,300,100,300,100,600,200,800]); } catch(e) {}
+}
+
+function _startAlarm(title, body) {
+  if (_alarmActive) return;
+  _alarmActive = true;
+  _playAlarm();
+  _showBanner(title, body);
+  showToast('🔔 ' + title);
+  _alarmInterval = setInterval(() => {
+    if (!_alarmActive) { clearInterval(_alarmInterval); return; }
+    _playAlarm();
+  }, 8000);
+  setTimeout(() => _stopAlarm(), 120000);
+}
+
+function _stopAlarm() {
+  _alarmActive = false;
+  clearInterval(_alarmInterval);
+  _alarmInterval = null;
+}
+
+function _showBanner(title, body) {
+  const existing = document.getElementById('_subAdminBanner');
+  if (existing) existing.remove();
+  const el = document.createElement('div');
+  el.id = '_subAdminBanner';
+  el.style.cssText = `position:fixed;top:12px;left:50%;transform:translateX(-50%);
+    z-index:99999;background:#fff;border-radius:14px;border-left:5px solid #c0392b;
+    box-shadow:0 8px 40px rgba(0,0,0,.3);padding:16px 20px;max-width:380px;
+    width:calc(100% - 24px);display:flex;gap:14px;align-items:flex-start;`;
+  el.innerHTML = `
+    <div style="font-size:30px">🔔</div>
+    <div style="flex:1">
+      <div style="font-weight:900;font-size:14px;color:#c0392b;margin-bottom:4px">${title}</div>
+      <div style="font-size:13px;color:#333;font-weight:600">${body}</div>
+      <div style="font-size:11px;color:#999;margin-top:4px">Tap OK to stop alarm</div>
+    </div>
+    <button onclick="event.stopPropagation();_stopAlarm();this.closest('#_subAdminBanner').remove();"
+      style="background:#c0392b;border:none;color:#fff;padding:8px 14px;
+      border-radius:8px;font-weight:800;font-size:12px;cursor:pointer;flex-shrink:0">✓ OK</button>`;
+  document.body.appendChild(el);
+}
+
+/* ══════════════════════════════
+   FCM FOR SUB-ADMIN
+══════════════════════════════ */
+const SUB_VAPID_KEY = "YOUR_VAPID_KEY_HERE"; // ⚠️ Replace with your VAPID key
+let _subFCM = null;
+try { _subFCM = firebase.messaging(); } catch(e) {}
+
+async function _initSubFCM(user) {
+  if (!_subFCM || location.protocol !== 'https:') return;
+  if (!SUB_VAPID_KEY || SUB_VAPID_KEY === 'YOUR_VAPID_KEY_HERE') return;
+  try {
+    const perm = await Notification.requestPermission();
+    if (perm !== 'granted') return;
+    const swScope = location.pathname.substring(0, location.pathname.lastIndexOf('/')+1) || '/';
+    const swReg = await navigator.serviceWorker.register('./sw.js', { scope: swScope });
+    const token = await _subFCM.getToken({ vapidKey: SUB_VAPID_KEY, serviceWorkerRegistration: swReg });
+    if (!token) return;
+    await db.collection('fcm_tokens').doc(token).set({
+      token, userId: user.uid, userEmail: user.email,
+      role: 'sub-admin', location: _myLocation,
+      platform: 'web-sub-admin', active: true,
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    }, { merge: true });
+    _subFCM.onMessage(payload => {
+      const title = payload.notification?.title || payload.data?.title || 'SRICART';
+      const body  = payload.notification?.body  || payload.data?.body  || '';
+      _startAlarm(title, body);
+    });
+    console.log('[SubFCM] Token saved ✅');
+  } catch(e) { console.warn('[SubFCM]', e.message); }
+}
+
+/* ══════════════════════════════
+   TOAST
+══════════════════════════════ */
+function showToast(msg) {
+  const t = document.getElementById('subAdminToast');
+  if (!t) return;
+  t.textContent = msg;
+  t.style.display = 'block';
+  clearTimeout(t._t);
+  t._t = setTimeout(() => t.style.display = 'none', 3200);
+}
+</script>
+</body>
+</html>

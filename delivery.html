@@ -474,7 +474,7 @@ try {
 ════════════════════════════════ */
 const DELIVERY_EMAILS = [
   // ⚠️ REPLACE THESE with your actual rider Gmail addresses
-  'rider1@sricart.in',
+  'threeway.ars@gmail.com',
   'rider2@sricart.in',
   'delivery@sricart.in'
   // Add more rider emails here — one per line
@@ -503,7 +503,7 @@ window.addEventListener('load', () => setTimeout(_warmDeliveryAudio, 500));
    DELIVERY FCM — Background Push (even when tab is closed)
    Set your VAPID key from Firebase Console → Project Settings → Cloud Messaging
 ════════════════════════════════ */
-const DELIVERY_FCM_VAPID_KEY = "YOUR_VAPID_KEY_HERE"; // ⚠️ Same VAPID key as sw.js
+const DELIVERY_FCM_VAPID_KEY = "BD7P8OtbT-9Zt3z8-9SqAQiIb6ZDBCCGmKokKB5ceEtW6W0zDXvwyba5mg_4HUNxZywpK-CVDdkEqfXStCkFH_U"; // ⚠️ Same VAPID key as sw.js
 
 let _deliveryFCM = null;
 try { _deliveryFCM = firebase.messaging(); } catch(e) { console.info("[DeliveryFCM] Not supported:", e.message); }

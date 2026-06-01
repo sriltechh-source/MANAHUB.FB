@@ -681,13 +681,13 @@ function _showBanner(title, body) {
 /* ══════════════════════════════
    FCM FOR SUB-ADMIN
 ══════════════════════════════ */
-const SUB_VAPID_KEY = "YOUR_VAPID_KEY_HERE"; // ⚠️ Replace with your VAPID key
+const SUB_VAPID_KEY = "BD7P8OtbT-9Zt3z8-9SqAQiIb6ZDBCCGmKokKB5ceEtW6W0zDXvwyba5mg_4HUNxZywpK-CVDdkEqfXStCkFH_U"; // ⚠️ Replace with your VAPID key
 let _subFCM = null;
 try { _subFCM = firebase.messaging(); } catch(e) {}
 
 async function _initSubFCM(user) {
   if (!_subFCM || location.protocol !== 'https:') return;
-  if (!SUB_VAPID_KEY || SUB_VAPID_KEY === 'YOUR_VAPID_KEY_HERE') return;
+  if (!SUB_VAPID_KEY || SUB_VAPID_KEY === 'BD7P8OtbT-9Zt3z8-9SqAQiIb6ZDBCCGmKokKB5ceEtW6W0zDXvwyba5mg_4HUNxZywpK-CVDdkEqfXStCkFH_U') return;
   try {
     const perm = await Notification.requestPermission();
     if (perm !== 'granted') return;
